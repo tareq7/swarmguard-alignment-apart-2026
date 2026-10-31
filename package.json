@@ -1,9 +1,9 @@
 {
-  "name": "sellerpilot-ai",
+  "name": "swarmguard-alignment-apart-2026",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Stock-aware seller-controlled Amazon/Noon operations copilot",
+  "description": "Pre-sprint Swarm Alignment toy benchmark; event-period experiment not yet conducted",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/build-api.mjs",

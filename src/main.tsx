@@ -137,7 +137,7 @@ export function App(){
     {page==='actions'&&<Actions {...view}/>}
     {page==='data'&&<DataLab {...view}/>}
     {page==='copilot'&&<Copilot {...view}/>}
-    <footer>SellerPilot AI · Meta Global AI Developer Hackathon 2026 <a href="https://github.com/tareq7/sellerpilot-ai" target="_blank" rel="noreferrer">GitHub</a><span><ShieldCheck size={15}/>{t('Synthetic data · Human-controlled decisions','بيانات اصطناعية · تحكم بشري')}</span></footer>
+    <footer>SellerPilot baseline · Apart Swarm Alignment 2026 (pre-sprint) <a href="https://github.com/tareq7/sellerpilot-ai" target="_blank" rel="noreferrer">GitHub</a><span><ShieldCheck size={15}/>{t('Synthetic data · Human-controlled decisions','بيانات اصطناعية · تحكم بشري')}</span></footer>
    </main>
   </div>
   {selected&&<DetailDrawer {...view} item={selected} close={()=>setSelected(null)}/>}

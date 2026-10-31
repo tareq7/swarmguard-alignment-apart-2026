@@ -1,4 +1,46 @@
-# SellerPilot AI — intelligence, in control.
+# SwarmGuard — Apart Research Swarm Alignment Hackathon 2026 (pre-sprint preparation)
+
+**Registered participant:** Tareq Naji — https://github.com/tareq7  
+**Event:** November 6–8, 2026 (online); final PDF/report deadline November 8, 23:59 Anywhere on Earth.  
+**Status:** PREPARATION ONLY — **NO EVENT-PERIOD RESEARCH RESULTS OR FINAL SUBMISSION.**
+
+## Prior work disclosure
+
+The repository was created on **October 31, 2026** by cloning https://github.com/tareq7/sellerpilot-ai with complete history. That application was originally submitted to the **Meta Global AI Developer Hackathon**, and its dashboard, videos and previous test results are **not** Swarm Alignment work. The separate `pre_sprint/` harness was likewise developed **before** the Nov 6 start: it is pre-existing infrastructure and **must not be represented as weekend research work**.
+
+## Research proposal — Track 4: Swarm oversight (with Track 1 controls)
+
+**Question:** In controlled multi-agent environments, how does network topology affect the propagation of unsafe tool instructions, and how much improvement results from independent verification gates?
+
+**Planned weekend work:** build a controlled tool-use agent evaluation using synthetic, safe merchant-operations tasks. Test reservation ownership, delegated spending caps, provenance verification, and clean task shutdown. Compare baseline and verified variants using repeated seeded trials, report uncertainty, and clearly label any simulated conditions. No real marketplace accounts, network intrusion or exfiltration. Distinguish scripted simulation from model-driven agent runs.
+
+### Pre-sprint toy baseline (not experimental LLM evidence)
+
+A simple standard-library Python simulator under `pre_sprint/` propagates an abstract compromised-message state across chain/star/complete graphs. Probability parameters are explicit and **not estimated from real systems**. It is for checking experiment plumbing and avoiding unsupported claims—not a scientific result.
+
+```sh
+python3 -m unittest discover -s tests_swarm -v
+python3 -m pre_sprint.sim --seed 42 --replicates 100 --agents 20 --rounds 6 --out toy_results.csv
+```
+
+Do not confuse reduced propagation under a chosen `verification` probability with proof that signatures or provenance controls work in real LLM swarms. A substantive event submission needs model/tool traces, reproducible baselines, variance estimates and a truthful limitations statement.
+
+## Submission checklist (not yet met)
+
+- [ ] Start event-period research **on or after November 6**, distinguish it in commits and reports from this pre-sprint work.
+- [ ] Choose and execute one genuine controlled multi-agent experiment; preserve raw traces and code.
+- [ ] Run conditions/replications; report quantitative results, variance and failure cases without invented claims.
+- [ ] Use the current **official Apart Research report template**, PDF at most eight main-text pages.
+- [ ] Include a 150–250 word abstract, author/affiliation, replicable methods and **Limitations and Dual-Use/Ethical Considerations appendix**.
+- [ ] Submit through official Apart Research sprint form before November 8 23:59 AoE; verify organizer confirmation.
+
+Source: https://apartresearch.com/sprints/swarm-alignment-2026
+
+---
+
+## Historical SellerPilot AI baseline (not claimed as this entry)
+
+### SellerPilot AI — intelligence, in control.
 
 **An evidence-backed, bilingual marketplace-operations copilot for Amazon.sa and Noon.sa.**
 
