@@ -1,0 +1,23 @@
+name: Swarm pre-sprint preparatory harness CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  toy-harness-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Toy simulation tests (not actual LLM research)
+        run: python -m unittest discover -s tests_swarm -v
+      - name: Smoke test synthetic CSV
+        run: python -m pre_sprint.sim --seed 42 --replicates 3 --agents 8 --rounds 4 --out /tmp/swarm-toy.csv
+      - name: Verify output rows
+        run: python -c "import csv; rows=list(csv.DictReader(open('/tmp/swarm-toy.csv'))); assert len(rows)==27"
