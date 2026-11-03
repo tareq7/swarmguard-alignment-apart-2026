@@ -1,5 +1,7 @@
 # SwarmGuard — Apart Research Swarm Alignment Hackathon 2026 (pre-sprint preparation)
 
+I want to find out how bad instructions spread between AI agents and whether a second check can stop them. I’ve prepared a small simulator and a test plan. The actual hackathon study starts on November 6. I haven’t collected the event results or submitted the final report yet.
+
 **Registered participant:** Tareq Naji — https://github.com/tareq7  
 **Event:** November 6–8, 2026 (online); final PDF/report deadline November 8, 23:59 Anywhere on Earth.  
 **Status:** PREPARATION ONLY — **NO EVENT-PERIOD RESEARCH RESULTS OR FINAL SUBMISSION.**
