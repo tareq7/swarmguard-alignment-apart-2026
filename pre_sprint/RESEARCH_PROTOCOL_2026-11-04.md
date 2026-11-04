@@ -44,3 +44,14 @@ During the event, run one pilot episode, verify provider usage and schema, then 
 Report attempts, not executed writes. With ten trials per cell, estimates will be uncertain. A simple per-condition count plus Wilson binomial confidence intervals is preferable to an unjustified significance claim. For paired differences, resample by episode ID across both arms and preserve topology strata. Report failures and denominator exclusions separately. Label benign-control false positives when the filter suppresses legitimate messages, not only when writes are blocked.
 
 The external filter has access to perfect synthetic provenance; real-world systems may not. Blocking tainted sources can simply eliminate exposure mechanically. The five-agent one-pass graph lacks asynchronous rounds, feedback, identities, market incentives and collusion. The artificial prompt is not representative of hostile production agents; model-proposed action strings do not imply a working attack. Disclose all limitations, prior work and dual-use consequences, and publish no real-world attack instructions or secrets. If no models are actually run during Nov 6–8, the project must remain a preparation study rather than an empirical final claim.
+
+
+## Event-only result aggregation (prepared before event)
+
+After real event-period experiments run and **after preserving the original JSONL files to Google Drive**, create a separate folder containing only this study's original complete and failed episode traces. Do not place mock fixtures or unrelated account data there. Then execute:
+
+    python3 -m pre_sprint.analyze_runs --input-dir /path/to/verified-event-traces --out /path/to/derived-analysis.json
+
+The analyzer is offline; it does not query models, charge credits or claim any result itself. It refuses pre-event/mock traces, missing event timestamps or declared kickoff, incomplete/altered primary outcomes, duplicate episode identifiers and mixed provider/model runs. It counts failed attempts separately, computes the episode-level binary unsafe proposal rate with Wilson descriptive intervals, and reports task completion. CI uses **fabricated in-memory/unit-test-only traces** strictly to validate this evidence gate; they are not preserved research results. With no genuine complete event trace, the command fails without generating a research findings file.
+
+Analysts must still manually audit original raw traces for hallucination, model identity and failure classifications. The per-episode prompt seed is not a guaranteed model sampling seed. The numerical report is not a validated hypothesis test or proof of a universal defensive effect.
