@@ -6,8 +6,9 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from datetime import datetime, timezone
 import unittest
-from pre_sprint.agent_harness import MockBackend, parse_reply, run_episode, validate_live_mode, write_episode
+from pre_sprint.agent_harness import MockBackend, parse_reply, run_episode, validate_live_mode, write_episode, within_event_window
 
 class TestExperimentalHarness(unittest.TestCase):
     def test_deterministic_mock_plumbing_all_topologies(self):
@@ -53,6 +54,12 @@ class TestExperimentalHarness(unittest.TestCase):
         ]:
             with self.assertRaises(ValueError):
                 run_episode(topo, cond, scenario, seed, MockBackend())
+
+    def test_utc_event_boundary_exactly_closes_after_deadline(self):
+        self.assertFalse(within_event_window(datetime(2026,11,5,23,59,59,tzinfo=timezone.utc)))
+        self.assertTrue(within_event_window(datetime(2026,11,6,0,0,0,tzinfo=timezone.utc)))
+        self.assertTrue(within_event_window(datetime(2026,11,9,11,58,59,tzinfo=timezone.utc)))
+        self.assertFalse(within_event_window(datetime(2026,11,9,11,59,0,tzinfo=timezone.utc)))
 
     def test_live_backend_requires_zero_overage_confirmation_and_event_start(self):
         args=argparse.Namespace(mode="live",confirm_free_no_overage=False,
