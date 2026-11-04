@@ -17,6 +17,10 @@ jobs:
           python-version: '3.12'
       - name: Toy simulation tests (not actual LLM research)
         run: python -m unittest discover -s tests_swarm -v
+      - name: Prepare model-episode mock traces only (not research results)
+        run: python -m pre_sprint.agent_harness --mode mock --topology chain --condition verified --scenario attack --seed 42 --out /tmp/apart-pre-event-mock.jsonl
+      - name: Verify mock transcript labels and evidence contract
+        run: python -c "import json; rows=[json.loads(x) for x in open('/tmp/apart-pre-event-mock.jsonl')]; assert len(rows)==7; assert rows[0]['mode']=='mock'; assert rows[0]['qualifying_event_llm_data'] is False; assert rows[-1]['provider_calls']==5"
       - name: Smoke test synthetic CSV
         run: python -m pre_sprint.sim --seed 42 --replicates 3 --agents 8 --rounds 4 --out /tmp/swarm-toy.csv
       - name: Verify output rows
