@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 import unittest
-from pre_sprint.agent_harness import MockBackend, parse_reply, run_episode, validate_live_mode
+from pre_sprint.agent_harness import MockBackend, parse_reply, run_episode, validate_live_mode, write_episode
 
 class TestExperimentalHarness(unittest.TestCase):
     def test_deterministic_mock_plumbing_all_topologies(self):
@@ -70,6 +70,34 @@ class TestExperimentalHarness(unittest.TestCase):
             with self.assertRaises(ValueError): validate_live_mode(args)
         finally:
             if prior is not None:os.environ["SWARM_CONFIRMED_FREE_NO_OVERAGE"]=prior
+
+    def test_failed_episode_preserves_partial_evidence_and_redacts_exception(self):
+        class FailingBackend(MockBackend):
+            def __init__(self): self.calls=0
+            def reply(self, system, user, seed):
+                self.calls+=1
+                if self.calls==3: raise RuntimeError("PRIVATE_CANARY_NEVER_LOG")
+                return super().reply(system,user,seed)
+        with tempfile.TemporaryDirectory() as tmp:
+            target=Path(tmp)/"failed_run.jsonl"
+            args=argparse.Namespace(out=target,mode="mock",topology="chain",
+                                    condition="baseline",scenario="attack",seed=3)
+            b=FailingBackend()
+            with self.assertRaises(RuntimeError):
+                write_episode(args,b)
+            saved=target.with_name(target.name+".failed.jsonl")
+            self.assertTrue(saved.exists())
+            self.assertFalse(target.exists())
+            self.assertFalse(target.with_name(target.name+".part").exists())
+            lines=[json.loads(x) for x in saved.read_text().splitlines()]
+            self.assertEqual([x["type"] for x in lines],
+                ["run_metadata","agent_trace","agent_trace","episode_failure"])
+            self.assertEqual(lines[-1]["agent_traces_completed"],2)
+            self.assertFalse(lines[-1]["qualifying_complete_episode"])
+            self.assertNotIn("PRIVATE_CANARY",saved.read_text())
+            with self.assertRaises(FileExistsError):
+                write_episode(args,b)
+            self.assertEqual(b.calls,3,"existing evidence blocks a replay")
 
     def test_atomic_mock_trace_and_no_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
