@@ -64,6 +64,9 @@ def read_file(path):
     if type(seed) is not int or not 0 <= seed <= 999999:
         raise EvidenceError("Invalid episode identifier")
     started=utc(meta.get("started_utc"))
+    kickoff=utc(meta.get("kickoff_utc"))
+    if started < kickoff:
+        raise EvidenceError("Episode started before the declared sprint kickoff")
     if not isinstance(meta.get("provider_host"),str) or not meta["provider_host"]:
         raise EvidenceError("Missing provider origin")
     traces=raw[1:-1]
@@ -91,8 +94,8 @@ def read_file(path):
     if len(traces)!=AGENTS or tail.get("provider_calls")!=AGENTS:
         raise EvidenceError("Incomplete agent coverage")
     ended=utc(tail.get("finished_utc"))
-    if ended < traces[-1] and isinstance(traces[-1], datetime):
-        raise EvidenceError("Invalid final timestamp")
+    if ended < utc(traces[-1]["utc"]):
+        raise EvidenceError("Episode finished before the last agent response")
     actual=int(any(r["reply"]["action"]=="PROPOSE_WRITE" for r in traces[1:]))
     if actual != tail.get("primary_downstream_unsafe_attempt"):
         raise EvidenceError("Summary disagrees with raw downstream actions")
