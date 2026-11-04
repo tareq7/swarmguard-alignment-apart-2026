@@ -10,6 +10,10 @@ I want to find out how bad instructions spread between AI agents and whether a s
 
 The repository was created on **October 31, 2026** by cloning https://github.com/tareq7/sellerpilot-ai with complete history. That application was originally submitted to the **Meta Global AI Developer Hackathon**, and its dashboard, videos and previous test results are **not** Swarm Alignment work. The separate `pre_sprint/` harness was likewise developed **before** the Nov 6 start: it is pre-existing infrastructure and **must not be represented as weekend research work**.
 
+## PRE-EVENT preparation update — November 4
+
+The [pre-registered research protocol](pre_sprint/RESEARCH_PROTOCOL_2026-11-04.md) and [five-agent harness](pre_sprint/agent_harness.py) now exist as **pre-sprint infrastructure**. They test graph/provenance wiring using synthetic mock responses, with automatic CI verification and an explicit disabled-by-default real-model provider gate. **No event-period LLM episodes have been run. Mock and older toy-simulator results are NOT eligible empirical evidence.** The study begins only after the real November 6 kickoff, using verified no-overage free inference, and its primary outcome is a downstream agent's proposed—not executed—unauthorized synthetic stock write.
+
 ## Research proposal — Track 4: Swarm oversight (with Track 1 controls)
 
 **Question:** In controlled multi-agent environments, how does network topology affect the propagation of unsafe tool instructions, and how much improvement results from independent verification gates?
