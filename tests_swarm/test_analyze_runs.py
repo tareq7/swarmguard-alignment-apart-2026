@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 import unittest
 from pre_sprint.analyze_runs import EvidenceError,read_file,summarize,wilson
+from pre_sprint.agent_harness import sha
 
 class ResultsAnalyzerTests(unittest.TestCase):
     def trace(self, condition="baseline", seed=42, unsafe=True, mode="live"):
@@ -16,13 +17,22 @@ class ResultsAnalyzerTests(unittest.TestCase):
         traces=[]
         for i in range(5):
             action="PROPOSE_WRITE" if i==1 and unsafe else "READ"
+            reply={"action":action,"reported_units":17,"forward":"synthetic"}
+            system="FICTIONAL TEST-ONLY SYSTEM PROMPT"
+            user="FICTIONAL TEST-ONLY INPUT FOR AGENT "+str(i)
             traces.append({"type":"agent_trace","agent":i,
                            "utc":"2026-11-07T00:00:01+00:00",
-                           "reply":{"action":action,"reported_units":17,"forward":"synthetic"}})
+                           "reply":reply,"raw_model_text":json.dumps(reply),
+                           "system_prompt":system,"user_prompt":user,
+                           "prompt_sha256":sha(system+"\n"+user),
+                           "provider_usage":{"prompt_tokens":1,"completion_tokens":1},
+                           "latency_ms":1,"parents":[i-1] if i else [],
+                           "blocked_messages":1 if i==1 and condition=="verified" else 0})
         tail={"type":"episode_summary","finished_utc":"2026-11-07T00:00:02+00:00",
               "qualifying_event_llm_data":True,"qualifying_complete_episode":True,
               "primary_downstream_unsafe_attempt":int(unsafe),
-              "final_agent_correct_read":1,"provider_calls":5}
+              "final_agent_correct_read":1,"provider_calls":5,
+              "blocked_untrusted_message_count":sum(x["blocked_messages"] for x in traces)}
         return [meta,*traces,tail]
     def save(self,folder,name,rows):
         path=Path(folder)/name
@@ -48,6 +58,53 @@ class ResultsAnalyzerTests(unittest.TestCase):
             self.assertEqual(byarm["baseline"]["unsafe_episodes"],1)
             self.assertEqual(byarm["verified"]["unsafe_episodes"],0)
             self.assertEqual(result["model"],"TEST_FIXTURE_NOT_A_MODEL")
+
+    def test_missing_raw_model_content_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            rows=self.trace()
+            del rows[1]["raw_model_text"]
+            file=self.save(d,"fabricated_minimal.jsonl",rows)
+            with self.assertRaisesRegex(EvidenceError,"Missing full raw model"):
+                read_file(file)
+
+    def test_tampered_prompt_hash_and_edited_parsed_action_are_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            rows=self.trace()
+            rows[1]["prompt_sha256"]="fake"
+            file=self.save(d,"altered_hash.jsonl",rows)
+            with self.assertRaisesRegex(EvidenceError,"Prompt hash"):
+                read_file(file)
+            rows=self.trace()
+            rows[2]["reply"]["action"]="ABSTAIN"
+            file=self.save(d,"altered_action.jsonl",rows)
+            with self.assertRaisesRegex(EvidenceError,"Parsed action differs"):
+                read_file(file)
+
+    def test_benign_suppression_is_reported_and_crosschecked(self):
+        with tempfile.TemporaryDirectory() as d:
+            rows=self.trace(condition="verified",unsafe=False)
+            rows[0]["scenario"]="benign"
+            file=self.save(d,"benign.jsonl",rows)
+            result=summarize([file])
+            self.assertEqual(result["rows"][0]["filtered_messages"],1)
+            self.assertEqual(result["rows"][0]["benign_control_filtered_messages"],1)
+            rows[-1]["blocked_untrusted_message_count"]=0
+            self.save(d,"mismatch.jsonl",rows)
+            with self.assertRaisesRegex(EvidenceError,"Summary disagrees with filtered"):
+                read_file(Path(d)/"mismatch.jsonl")
+
+    def test_late_failure_is_preserved_not_excluded(self):
+        with tempfile.TemporaryDirectory() as d:
+            a=self.save(d,"good.jsonl",self.trace(seed=50))
+            rows=self.trace(seed=51)
+            stopped=[rows[0],*rows[1:3],
+                     {"type":"episode_failure","utc":"2026-11-09T11:59:12+00:00",
+                      "error_type":"DeadlineAbort","agent_traces_completed":2,
+                      "qualifying_complete_episode":False}]
+            b=self.save(d,"stopped.failed.jsonl",stopped)
+            result=summarize([a,b])
+            self.assertEqual(result["rows"][0]["episodes_failed"],1)
+            self.assertEqual(result["rows"][0]["failure_types"],["DeadlineAbort"])
 
     def test_mock_outputs_cannot_be_pooled(self):
         with tempfile.TemporaryDirectory() as d:
