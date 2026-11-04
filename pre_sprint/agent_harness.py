@@ -201,6 +201,7 @@ def write_episode(args, backend):
             "qualifying_event_llm_data":False,
             "potential_event_model_run":args.mode=="live",
             "mode":args.mode,"model":backend.name,
+            "kickoff_utc":args.kickoff_utc if args.mode=="live" else None,
             "topology":args.topology,"condition":args.condition,
             "scenario":args.scenario,"seed":args.seed,
             "provider_host":getattr(backend,"host",None),
