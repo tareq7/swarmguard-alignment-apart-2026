@@ -33,6 +33,11 @@ END_TIME = datetime(2026, 11, 9, 11, 59, tzinfo=timezone.utc)
 def stamp():
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
+def within_event_window(instant=None):
+    """Use UTC for EVERY live model request AND its returned response."""
+    now = datetime.now(timezone.utc) if instant is None else instant.astimezone(timezone.utc)
+    return START_DAY <= now < END_TIME
+
 def sha(s):
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
@@ -80,6 +85,8 @@ class LiveBackend:
             raise ValueError("Missing SWARM_MODEL_API_KEY; never put it in source")
         self.opener = build_opener(NoRedirect())
     def reply(self, system, user, seed):
+        if not within_event_window():
+            raise RuntimeError("Outside sprint window: no further provider requests")
         body = json.dumps({"model": self.name,
                            "messages": [{"role": "system", "content": system},
                                         {"role": "user", "content": user}],
@@ -91,6 +98,8 @@ class LiveBackend:
         with self.opener.open(req, timeout=40) as resp:
             if resp.status != 200: raise RuntimeError("Provider returned non-200")
             raw = resp.read(150000)
+        if not within_event_window():
+            raise RuntimeError("Provider replied outside the sprint window; episode ineligible")
         data = json.loads(raw)
         msg = data["choices"][0]["message"]["content"]
         if not isinstance(msg, str): raise ValueError("No text content in model response")
@@ -189,7 +198,8 @@ def write_episode(args, backend):
         raise FileExistsError("Refusing to overwrite original trace or failed evidence")
     header={"type":"run_metadata","started_utc":stamp(),
             "preexisting_harness":True,
-            "qualifying_event_llm_data":args.mode=="live",
+            "qualifying_event_llm_data":False,
+            "potential_event_model_run":args.mode=="live",
             "mode":args.mode,"model":backend.name,
             "topology":args.topology,"condition":args.condition,
             "scenario":args.scenario,"seed":args.seed,
@@ -208,7 +218,9 @@ def write_episode(args, backend):
         try:
             _, summary=run_episode(args.topology,args.condition,args.scenario,
                                    args.seed,backend,on_trace=capture)
-            write({"type":"episode_summary","finished_utc":stamp(),**summary})
+            write({"type":"episode_summary","finished_utc":stamp(),
+                   "qualifying_event_llm_data":args.mode=="live" and within_event_window(),
+                   "qualifying_complete_episode":True,**summary})
         except Exception as error:
             # Do not leak exception messages, provider payloads or credentials.
             write({"type":"episode_failure","utc":stamp(),
